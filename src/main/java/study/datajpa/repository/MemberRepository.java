@@ -4,6 +4,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 
 import java.util.List;
@@ -22,7 +23,15 @@ public interface MemberRepository extends JpaRepository<Member, Long> { // 인�
     // 해당 이름의 NamedQuery 발견하면 NamedQuery 실행하고, 없으면 쿼리 이름으로 쿼리 생성하는 방식 사용
     // 즉, 우선 순위가 NamedQuery > 쿼리 이름으로 쿼리 생성
 
-    // @Query, 리포지토리에 메소드에 쿼리 정의하기
+    // @Query, 리포지토리에 메소드에 쿼리 정의하기 - 엔티티 조회
     @Query("select m from Member m where m.username = :username and m.age = :age")
     List<Member> findUser(@Param("username") String username, @Param("age") int age);
+
+    // @Query - 값 조회
+    @Query("select m.username from Member m")
+    List<String> findUsernameList();
+
+    // @Query - DTO 조회
+    @Query("select new study.datajpa.dto.MemberDto(m.id, m.username, t.name) from Member m join m.team t")
+    List<MemberDto> findMemberDto();
 }
