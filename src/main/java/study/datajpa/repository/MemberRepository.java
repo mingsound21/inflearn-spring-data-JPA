@@ -9,6 +9,7 @@ import study.datajpa.entity.Member;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, Long> { // 인터페이스 상속 extends
 
@@ -39,4 +40,9 @@ public interface MemberRepository extends JpaRepository<Member, Long> { // 인�
     // 컬렉션 파라미터 바인딩
     @Query("select m from Member m where m.username in :names")
     List<Member> findByNames(@Param("names") Collection<String> names);
+
+    // 다양한 반환 타입 지원
+    List<Member> findListByUsername(String username); // 컬렉션
+    Member findMemberByUsername(String username); // 단건
+    Optional<Member> findOptionalMemberByUsername(String username); // 단건, Optional
 }

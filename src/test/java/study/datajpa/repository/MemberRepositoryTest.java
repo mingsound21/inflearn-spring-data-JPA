@@ -11,6 +11,7 @@ import study.datajpa.entity.Team;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -142,6 +143,23 @@ class MemberRepositoryTest {
         for (Member member : result) {
             System.out.println("member = " + member);
         }
+    }
+
+    @Test
+    public void returnType(){
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("AAA", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        List<Member> listFindMember = memberRepository.findListByUsername("AAA"); // 컬렉션
+        Member findMember = memberRepository.findMemberByUsername("AAA"); // 단건
+        Optional<Member> optionalFindMember = memberRepository.findOptionalMemberByUsername("AAA"); // Optional
+        System.out.println("listFindMember = " + listFindMember);
+        System.out.println("findMember = " + findMember);
+        System.out.println("optionalFindMember = " + optionalFindMember.get());
+        
+        // WARN) 컬렉션 리턴 값일 때, 데이터를 찾지 못한 경우, null이 아닌 [](empty 컬렉션)반환
     }
 
 }
