@@ -19,6 +19,9 @@ class MemberRepositoryTest {
 
     @Test
     public void testMember(){
+
+        System.out.println("memberRepository = " + memberRepository.getClass()); // class com.sun.proxy.$Proxy121 (스프링 데이터 JPA가 인터페이스 보고 프록시 객체(구현체)를 만들어서 꽂음)
+
         Member member = new Member("memberA");
         Member savedMember = memberRepository.save(member);
         Member findMember = memberRepository.findById(savedMember.getId()).get();
