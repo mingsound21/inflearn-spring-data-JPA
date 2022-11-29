@@ -34,6 +34,11 @@ public class Member {
         }
     }
 
+    public Member(String username, int age) {
+        this.username = username;
+        this.age = age;
+    }
+
     // setter 대신 이런 메서드 생성하는 것이 GOOD
     public void changeUsername(String username){
         this.username = username;
