@@ -13,6 +13,7 @@ import javax.persistence.*;
         name = "Member.findByUsername", // 관례: 엔티티명.함수명
         query = "select m from Member m where m.username = :username"
 )
+@NamedEntityGraph(name = "Member.all", attributeNodes = @NamedAttributeNode("team"))
 public class Member {
     @Id
     @GeneratedValue

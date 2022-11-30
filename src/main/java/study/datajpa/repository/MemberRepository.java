@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 
+import javax.persistence.NamedEntityGraph;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -63,4 +65,25 @@ public interface MemberRepository extends JpaRepository<Member, Long> { // 인�
     // @Modifying: JPA의 executeUpdate를 실행 - 작성 안하면 getResultList, getSingleResult호출함
     // clearAutomatically = true: 벌크 연산 이후에 em.clear()자동으로 해줌
 
+    // Fetch Join
+    // member 조회시 연관된 team을 같이 "한 방 쿼리"로 가져옴
+    @Query("select m from Member m left join fetch m.team")
+    List<Member> findMemberFetchJoin();
+
+    // Entity Graph
+    @Override
+    @EntityGraph(attributePaths = {"team"}) // 객체의 필드명
+    List<Member> findAll();
+
+    // JPQL에 Entity Graph추가(fetch join)
+    @EntityGraph(attributePaths = {"team"})
+    @Query("select m from Member m")
+    List<Member> findMemberEntityGraph();
+
+    @EntityGraph(attributePaths = {"team"})
+    List<Member> findEntityGraphByUsername(@Param("username") String username);
+
+    // Member 객체에 선언한 @NamedEntityGraph를 사용
+//    @EntityGraph("Member.all")
+//    List<Member> findEntityGraphByUsername(@Param("username") String username);
 }

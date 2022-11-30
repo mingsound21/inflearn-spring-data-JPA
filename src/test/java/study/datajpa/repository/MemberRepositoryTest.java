@@ -243,4 +243,36 @@ class MemberRepositoryTest {
         // then
         assertThat(resultCount).isEqualTo(3);
     }
+
+    @Test
+    public void findMemberLazy(){
+        // given
+        // member1 -> teamA
+        // member2 -> teamB
+        // 관계 : Member - Team : @ManyToOne, LAZY
+        // FetchType = LAZY >> Member 조회 시, Team은 "프록시 객체"로 조회. 실제 Team 사용시 실제 쿼리 날라가면서 Team 객체 초기화됨.
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 10, teamB);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+
+        // when
+         List<Member> members = memberRepository.findAll();
+        // findAll override하기 전 : 쿼리 수: 1 + N
+        // findAll override한 후 : 쿼리 수: 1
+        // List<Member> members = memberRepository.findMemberFetchJoin(); // 쿼리 수: 1
+        for (Member member : members) {
+            System.out.println("member = " + member.getUsername());
+            System.out.println("member.teamClass = " + member.getTeam().getClass()); // team 프록시 객체 확인
+            // team 객체 프록시 초기화
+            System.out.println("member.team = " + member.getTeam().getName()); // 쿼리 수: member 수
+        }
+    }
 }
