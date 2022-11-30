@@ -3,6 +3,10 @@ package study.datajpa.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
@@ -148,7 +152,7 @@ class MemberRepositoryTest {
     @Test
     public void returnType(){
         Member m1 = new Member("AAA", 10);
-        Member m2 = new Member("AAA", 20);
+        Member m2 = new Member("BBB", 20);
         memberRepository.save(m1);
         memberRepository.save(m2);
 
@@ -160,6 +164,55 @@ class MemberRepositoryTest {
         System.out.println("optionalFindMember = " + optionalFindMember.get());
         
         // WARN) 컬렉션 리턴 값일 때, 데이터를 찾지 못한 경우, null이 아닌 [](empty 컬렉션)반환
+    }
+
+    @Test
+    public void paging(){
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username")); // PageRequest : 쿼리에 limit하기 위한 것(totalCount 쿼리 여부는 반환 타입으로 결정)
+        // PageRequest(구현체)의 부모를 타고가다보면 Pageable interface가 있음.
+        // WARN) page 1이 아니라 0부터 시작!!
+
+        // when
+        Page<Member> page = memberRepository.findPageByAge(age, pageRequest);
+        Slice<Member> slice = memberRepository.findSliceByAge(age, pageRequest);
+        List<Member> list = memberRepository.findListByAge(age, pageRequest);
+
+        // then
+        // 1) 반환 타입 Page
+        List<Member> content = page.getContent();
+
+        assertThat(content.size()).isEqualTo(3);
+        assertThat(page.getTotalElements()).isEqualTo(5);
+        assertThat(page.getNumber()).isEqualTo(0);
+        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+
+        // 2. 반환 타입 Slice
+        // Slice는 total 관련 함수들이 없음
+        List<Member> content_slice = slice.getContent();
+
+        assertThat(content_slice.size()).isEqualTo(3);
+//        assertThat(slice.getTotalElements()).isEqualTo(5);
+        assertThat(slice.getNumber()).isEqualTo(0);
+//        assertThat(slice.getTotalPages()).isEqualTo(2);
+        assertThat(slice.isFirst()).isTrue();
+        assertThat(slice.hasNext()).isTrue();
+
+        // 3. 반환 타입 List
+        // 위의 함수들 동작 안함
+
+        // 실무 팁! Entity는 외부로 절대 반환 금지!! DTO로 변환해서 반환!!
+        Page<MemberDto> toMap = page.map(member -> new MemberDto(member.getId(), member.getUsername(), null)); // Page유지하면서 DTO: api로 반환 가능
+        // Page 유지하면서 JSON생성될 때, totalPage, totalElement 등이 JSON으로 반환됨
     }
 
 }
