@@ -4,15 +4,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 
+import javax.persistence.LockModeType;
 import javax.persistence.NamedEntityGraph;
+import javax.persistence.QueryHint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -86,4 +85,13 @@ public interface MemberRepository extends JpaRepository<Member, Long> { // 인�
     // Member 객체에 선언한 @NamedEntityGraph를 사용
 //    @EntityGraph("Member.all")
 //    List<Member> findEntityGraphByUsername(@Param("username") String username);
+
+    // JPA Hint
+    @QueryHints(value = @QueryHint(name = "org.hibernate.readOnly", value = "true"))// name과 value 모두 String : JPA가 하이버네이트에게 무엇이든지 넘길 수 있도록 구멍을 열어둠.
+    Member findReadOnlyByUsername(String username);
+    // readOnly = true되어있으면 성능최적화해서 스냅샷을 안 만듦.
+
+    // Lock
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<Member> findLockByUsername(String username);
 }

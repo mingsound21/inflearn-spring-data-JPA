@@ -275,4 +275,37 @@ class MemberRepositoryTest {
             System.out.println("member.team = " + member.getTeam().getName()); // 쿼리 수: member 수
         }
     }
+
+    @Test
+    public void queryHint(){
+        // given
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        // when
+//        Member findMember = memberRepository.findById(member1.getId()).get();
+//        findMember.setUsername("member2");
+
+        Member findMember_readOnly = memberRepository.findReadOnlyByUsername("member1");
+        findMember_readOnly.setUsername("member2");
+        // readOnly = true이면, 변경감지 체크를 안함 = update 쿼리 안날라감
+        
+        em.flush(); // 변경감지 - update
+    }
+
+    @Test
+    public void lock(){
+        // given
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        // when
+
+        List<Member> result= memberRepository.findLockByUsername("member1");
+    }
+
 }
