@@ -13,6 +13,8 @@ import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 import study.datajpa.entity.Team;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +29,8 @@ class MemberRepositoryTest {
 
     @Autowired MemberRepository memberRepository;
     @Autowired TeamRepository teamRepository;
+    @PersistenceContext EntityManager em;
+
     @Test
     public void testMember(){
 
@@ -215,4 +219,28 @@ class MemberRepositoryTest {
         // Page 유지하면서 JSON생성될 때, totalPage, totalElement 등이 JSON으로 반환됨
     }
 
+    @Test
+    public void bulkUpdate(){
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 21));
+        memberRepository.save(new Member("member5", 40));
+
+        // when
+        int resultCount = memberRepository.bulkAgePlus(20);// 20살 이상인 사람들의 나이 + 1
+        em.flush();
+        em.clear();
+
+        // WARN) JPA 영속성 컨텍스트 개념 때문에 벌크 연산 수행하면 영속성 컨텍스트 속 Entity 정보 != DB의 Entity 정보
+        // 벌크 연산: 영속성 컨텍스트 무시하고 DB에 바로 쿼리 날림
+        // 결론) 벌크 연산 이후에는 영속성 컨텍스트를 날려야 함. => 벌크연산 직후 em.flush(), em.clear();
+        //       >> 영속성 컨텍스트 날리면, 영속성 컨텍스트 초기화되어서 다시 DB에서 Entity 조회해옴.
+        Member member5 = memberRepository.findMemberByUsername("member5");
+        System.out.println("member5.age = " + member5.getAge()); // 콘솔 출력 40, BUT DB에서는 41 (영속성 컨텍스트 초기화 안했을 경우)
+
+        // then
+        assertThat(resultCount).isEqualTo(3);
+    }
 }
