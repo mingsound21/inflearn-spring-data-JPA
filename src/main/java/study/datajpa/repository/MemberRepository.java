@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface MemberRepository extends JpaRepository<Member, Long> { // 인터페이스 상속 extends
+public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom { // 인터페이스 상속 extends, MemberRepositoryCustom = 커스텀한 Repository 상속
 
     // 메소드 이름으로 쿼리 생성 - 필드이름 정확히 적어야함
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
