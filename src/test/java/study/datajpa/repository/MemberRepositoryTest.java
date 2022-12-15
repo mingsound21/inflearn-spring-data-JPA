@@ -4,10 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
@@ -337,4 +334,60 @@ class MemberRepositoryTest {
         Assertions.assertThat(result.size()).isEqualTo(1);
     }
 
+    @Test
+    public void queryByExample() throws Exception {
+        // given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        // when
+        // 엔티티 자체가 검색 condition
+        // probe 생성
+        Member member = new Member("m1");
+        Team team = new Team("teamA");
+        member.setTeam(team);
+
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withIgnorePaths("age");// age 속성은 무시
+
+        Example<Member> example = Example.of(member, matcher);
+        List<Member> result = memberRepository.findAll(example); // JpaRepository에 extends QueryByExampleExecutor가 되어있음
+
+        // then
+        assertThat(result.get(0).getUsername()).isEqualTo("m1");
+    }
+
+    @Test
+    public void test() throws Exception {
+        // given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<NestedClosedProjection> result = memberRepository.findDynamicProjectionByUsername("m1", NestedClosedProjection.class);
+
+        // then
+        for (NestedClosedProjection nestedClosedProjection : result) {
+            String username = nestedClosedProjection.getUsername();
+            System.out.println("username = " + username);
+            String teamName = nestedClosedProjection.getTeam().getName();
+            System.out.println("teamName = " + teamName);
+        }
+    }
 }
